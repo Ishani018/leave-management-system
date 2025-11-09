@@ -39,7 +39,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const newRequest = new LeaveRequest({
-      // ✅ Using 'user' field to match the schema.
+      // ✅ Confirms the field name is 'user'
       user: userId, 
       leaveType,
       startDate: start,

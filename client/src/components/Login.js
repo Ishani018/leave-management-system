@@ -34,7 +34,12 @@ const Login = () => {
             // 2. Set the default header globally using the utility
             setAuthToken(token); // ✅ FIX: Use the utility to set header
 
-            navigate('/dashboard'); 
+            // FIX: Redirect based on the user's role
+            if (role === 'Manager') {
+                navigate('/manager'); // Redirect manager to manager dashboard
+            } else {
+                navigate('/dashboard'); // Redirect employee to employee dashboard
+            }
         } catch (err) {
             console.error(err.response?.data);
             setError(err.response?.data?.msg || 'Login failed. Check your credentials.');

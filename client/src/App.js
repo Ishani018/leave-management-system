@@ -1,55 +1,43 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-// The import for App.css has been added here to apply global styles
-import './App.css'; 
-// Components (ensure these files exist in src/components/)
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Login from './components/Login';
 import Register from './components/Register';
+import Login from './components/Login';
 import EmployeeDashboard from './components/EmployeeDashboard';
-import ManagerDashboard from './components/ManagerDashboard';
+import ManagerDashboard from './components/ManagerDashboard'; // Import the ManagerDashboard
+import setAuthToken from './utils/setAuthToken';
+import './App.css';
 
-// Custom component to handle redirection based on role
-const ProtectedDashboard = () => {
-    const isAuthenticated = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
+// Check for token on load and set global headers if present
+if (localStorage.token) {
+    setAuthToken(localStorage.token);
+}
 
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
+const App = () => {
+    // Optional: Re-run token check on component mount if needed for initialization
+    useEffect(() => {
+        if (localStorage.token) {
+            setAuthToken(localStorage.token);
+        }
+    }, []);
 
-    if (role === 'Manager') {
-        return <ManagerDashboard />;
-    } else if (role === 'Employee') {
-        return <EmployeeDashboard />;
-    } else {
-        // Fallback for authenticated but role-less user
-        return <Navigate to="/login" replace />;
-    }
-};
-
-function App() {
     return (
         <Router>
-            <Navbar />
-            {/* The 'App' class from App.css is added here to style the main container */}
-            <div className="container App mx-auto p-4">
+            <div className="App">
+                <Navbar />
                 <Routes>
                     <Route path="/register" element={<Register />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/dashboard" element={<EmployeeDashboard />} />
+                    {/* FIX: Add route for Manager Dashboard */}
+                    <Route path="/manager" element={<ManagerDashboard />} /> 
                     
-                    {/* Main Protected Route */}
-                    <Route path="/dashboard" element={<ProtectedDashboard />} />
-
-                    {/* Default Route redirects to Dashboard (which handles auth check) */}
-                    <Route path="/" element={<ProtectedDashboard />} />
-
-                    {/* Optional: Add a 404 page if needed */}
-                    <Route path="*" element={<h2>404 Not Found</h2>} /> 
+                    {/* Default path (e.g., landing page or redirect unauthenticated users to login) */}
+                    <Route path="/" element={<h1>Welcome to the Leave System</h1>} />
                 </Routes>
             </div>
         </Router>
     );
-}
+};
 
 export default App;

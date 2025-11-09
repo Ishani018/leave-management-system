@@ -10,8 +10,9 @@ const { isManager } = require('../middleware/managerMiddleware');
 router.get('/requests', protect, isManager, async (req, res) => {
     try {
         const requests = await LeaveRequest.find({ status: 'Pending' })
-            // FIX 3: Change 'user' to 'employee' to correctly populate the user's name/email
-            .populate('employee', 'name email') 
+            // FIX: Must use 'user' here, as confirmed by the save logic in leave.js.
+            // This prevents a server crash during population.
+            .populate('user', 'name email') 
             .sort({ createdAt: -1 });
 
         res.json(requests);
