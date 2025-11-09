@@ -1,117 +1,112 @@
-// client/src/components/ManagerDashboard.js
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const ManagerDashboard = () => {
-    // State to store ALL leave requests
-    const [allRequests, setAllRequests] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Function to fetch ALL requests
-    const fetchAllRequests = async () => {
+    const getAuthHeaders = useCallback(() => ({
+        headers: {
+            'x-auth-token': localStorage.getItem('token'),
+        },
+    }), []);
+
+    // FIX 1: Wrapped in useCallback to create a stable dependency for useEffect
+    const fetchRequests = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Not authorized');
-                window.location.href = '/login';
-                return;
+                 window.location.href = '/login';
+                 return;
             }
-            const config = {
-                headers: {
-                    'x-auth-token': token,
-                },
-            };
-            // Fetches ALL requests from the manager endpoint
-            const res = await axios.get('/api/manager/all-requests', config);
-            setAllRequests(res.data);
+            // Fetches all PENDING requests using the manager API endpoint
+            const res = await axios.get('/api/manager/requests', getAuthHeaders());
+            setRequests(res.data);
         } catch (err) {
-            console.error(err.response.data);
-            if (err.response.status === 403) {
-                alert('Access denied: You are not a Manager.');
-                window.location.href = '/dashboard'; 
+            console.error(err.response?.data);
+            const errMsg = err.response?.data?.msg || 'Failed to fetch requests.';
+            setError(errMsg);
+            setRequests([]);
+            // Handle unauthorized access by redirecting
+            if (err.response?.status === 401 || err.response?.status === 403) {
+                 localStorage.removeItem('token');
+                 localStorage.removeItem('role');
+                 // window.location.href = '/login'; // Let the App.js handle this redirect
             }
-            if (err.response.status === 401) {
-                alert('Session expired. Please log in again.');
-                localStorage.removeItem('token');
-                localStorage.removeItem('role');
-                window.location.href = '/login';
-            }
+        } finally {
+            setLoading(false);
         }
-    };
+    }, [setRequests, setError, setLoading, getAuthHeaders]); 
 
-    // Fetch data when the component loads
-    useEffect(() => {
-        fetchAllRequests();
-    }, []);
-
-    // Function to handle approving or rejecting
-    const handleUpdateStatus = async (id, newStatus) => {
-        if (!window.confirm(`Are you sure you want to ${newStatus.toLowerCase()} this request?`)) {
-            return;
-        }
-        
+    // FIX 2: 'handleAction' is now correctly used in the JSX below.
+    const handleAction = async (id, status) => {
         try {
-            const token = localStorage.getItem('token');
-            const config = {
-                headers: {
-                    'x-auth-token': token,
-                },
-            };
-            const body = { status: newStatus };
-            // Makes the PUT request to update the status
-            await axios.put(`/api/manager/request/${id}`, body, config);
-            alert(`Request ${newStatus}`);
-            fetchAllRequests(); // Re-fetches the list to show the change
+            // Optimistic UI update: remove the processed request immediately
+            setRequests(requests.filter(req => req._id !== id));
+            
+            // Send PUT request to update status
+            await axios.put(`/api/manager/requests/${id}`, { status }, getAuthHeaders());
+            
+            alert(`Leave request ${status} successfully!`);
+
         } catch (err) {
-            console.error(err.response.data);
-            alert('Failed to update status.');
+            console.error(err.response?.data);
+            alert(err.response?.data?.msg || `Failed to ${status.toLowerCase()} request.`);
+            // Fetch again on error to restore the item if the server failed
+            fetchRequests(); 
         }
     };
+
+    // useEffect now safely uses fetchRequests (which is stable)
+    useEffect(() => {
+        const role = localStorage.getItem('role');
+        if (role === 'Manager') {
+            fetchRequests();
+        } else {
+            // Show error if role check fails locally
+            setError("Access denied. Only Managers can view this dashboard.");
+            setLoading(false);
+        }
+    }, [fetchRequests]);
+
+    if (loading) return <div className="text-center p-6">Loading pending requests...</div>;
+    // The requests, loading, and error states are used here:
+    if (error && requests.length === 0) return <div className="text-red-600">Error: {error}</div>;
 
     return (
-        <div>
-            <h2>Manager Dashboard</h2>
-
-            {/* --- NOTE: THE "APPLY FOR LEAVE" FORM IS REMOVED --- */}
-
-            {/* --- THIS LIST SHOWS ALL REQUESTS FROM ALL EMPLOYEES --- */}
-            <h3>All Leave Requests</h3>
+        <div className="p-6">
+            <h2 className="text-3xl font-bold mb-6">Manager Dashboard</h2>
             
-            {allRequests.length === 0 ? (
-                <p>No leave requests found.</p>
-            ) : (
-                <ul style={{ listStyleType: 'none', padding: 0 }}>
-                    {allRequests.map((req) => (
-                        <li key={req._id} className="request-item">
-                            {/* Shows which user made the request */}
-                            <strong>User:</strong> {req.user.name} ({req.user.email})<br /> 
-                            <strong>Reason:</strong> {req.reason}<br />
-                            <strong>From:</strong> {new Date(req.startDate).toLocaleDateString()}<br />
-                            <strong>To:</strong> {new Date(req.endDate).toLocaleDateString()}<br />
-                            <strong>Status:</strong> 
-                            <span className={`status-${req.status.toLowerCase()}`}>
-                                {req.status}
-                            </span>
-                            <br /><br />
+            <h3>Pending Leave Requests ({requests.length})</h3>
 
-                            {/* --- APPROVE/REJECT BUTTONS --- */}
-                            {/* Only show buttons if the request is still 'Pending' */}
-                            {req.status === 'Pending' && (
-                                <div>
-                                    <button 
-                                        onClick={() => handleUpdateStatus(req._id, 'Approved')}
-                                        className="btn-approve"
-                                    >
-                                        Approve
-                                    </button>
-                                    <button 
-                                        onClick={() => handleUpdateStatus(req._id, 'Rejected')}
-                                        className="btn-reject"
-                                    >
-                                        Reject
-                                    </button>
-                                </div>
-                            )}
+            {requests.length === 0 ? (
+                <p>No pending leave requests require your attention.</p>
+            ) : (
+                <ul className="space-y-4">
+                    {requests.map((req) => (
+                        <li key={req._id} className="p-4 border border-yellow-400 bg-yellow-50 rounded-lg shadow-md">
+                            <p><strong>Employee:</strong> {req.user?.name || 'Unknown'}</p>
+                            <p><strong>Email:</strong> {req.user?.email || 'N/A'}</p>
+                            <p><strong>Type:</strong> {req.leaveType}</p>
+                            <p><strong>Reason:</strong> {req.reason || '(Not provided)'}</p>
+                            <p><strong>Dates:</strong> {new Date(req.startDate).toLocaleDateString()} to {new Date(req.endDate).toLocaleDateString()}</p>
+                            
+                            <div className="mt-3 space-x-2">
+                                {/* FIX 2: handleAction is used on these buttons */}
+                                <button
+                                    onClick={() => handleAction(req._id, 'Approved')}
+                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                    Approve
+                                </button>
+                                <button
+                                    onClick={() => handleAction(req._id, 'Rejected')}
+                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                    Reject
+                                </button>
+                            </div>
                         </li>
                     ))}
                 </ul>

@@ -1,32 +1,48 @@
-// client/src/App.js
-
 import React from 'react';
-// We need to import 'Navigate' for the redirect
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-
-// Import our components
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// Components (ensure these files exist in src/components/)
+import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Register from './components/Register';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import ManagerDashboard from './components/ManagerDashboard';
-// Home.js is no longer needed
-import Navbar from './components/Navbar'; 
 
-import './App.css'; 
+// Custom component to handle redirection based on role
+const ProtectedDashboard = () => {
+    const isAuthenticated = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (role === 'Manager') {
+        return <ManagerDashboard />;
+    } else if (role === 'Employee') {
+        return <EmployeeDashboard />;
+    } else {
+        // Fallback for authenticated but role-less user
+        return <Navigate to="/login" replace />;
+    }
+};
 
 function App() {
     return (
         <Router>
-            <div className="App">
-                <Navbar />
-                
+            <Navbar />
+            <div className="container mx-auto p-4">
                 <Routes>
-                    {/* Make the root path redirect to login */}
-                    <Route path="/" element={<Navigate to="/login" />} /> 
-                    <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    <Route path="/dashboard" element={<EmployeeDashboard />} /> 
-                    <Route path="/manager" element={<ManagerDashboard />} /> 
+                    <Route path="/login" element={<Login />} />
+                    
+                    {/* Main Protected Route */}
+                    <Route path="/dashboard" element={<ProtectedDashboard />} />
+
+                    {/* Default Route redirects to Dashboard (which handles auth check) */}
+                    <Route path="/" element={<ProtectedDashboard />} />
+
+                    {/* Optional: Add a 404 page if needed */}
+                    <Route path="*" element={<h2>404 Not Found</h2>} /> 
                 </Routes>
             </div>
         </Router>

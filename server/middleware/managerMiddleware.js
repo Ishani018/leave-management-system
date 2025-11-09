@@ -1,9 +1,11 @@
-// server/middleware/adminMiddleware.js
-
-module.exports = function(req, res, next) {
-    // We assume authMiddleware has already run
-    if (req.user.role !== 'Admin') {
-        return res.status(403).json({ msg: 'Access denied: Not an Admin' });
+const isManager = (req, res, next) => {
+    // Assumes the 'protect' middleware has run and attached req.user
+    if (!req.user || req.user.role !== 'Manager') {
+        // 403 Forbidden is the correct status for role-based access denial
+        return res.status(403).json({ msg: 'Access denied. Manager role required.' });
     }
+
     next();
 };
+
+module.exports = { isManager };

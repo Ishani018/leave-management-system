@@ -1,17 +1,45 @@
-// server/models/User.js
-
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    // Simple role management
-    role: { 
-        type: String, 
-        enum: ['Employee', 'Manager', 'Admin'], 
-        default: 'Employee' 
+    name: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    // 🔑 FIX: Explicitly define role for proper handling.
+    role: {
+        type: String,
+        default: 'Employee', // Default to Employee
+        enum: ['Employee', 'Manager'],
+    },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
+// Hash password before saving
+UserSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) {
+        return next();
     }
-}, { timestamps: true }); // timestamps adds 'createdAt' and 'updatedAt' fields
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+});
+
+// Compare password method
+UserSchema.methods.matchPassword = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model('User', UserSchema);
