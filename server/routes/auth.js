@@ -5,6 +5,7 @@ const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 
 const generateToken = (id, role) => {
+    // Generates a token with a payload of { id: ..., role: ... }
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '1h',
     });
@@ -46,7 +47,7 @@ router.post('/login', [
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
-        // 🔑 FIX: Return the role along with the token
+        // Return the role, id and name along with the token to the client
         res.json({
             token: generateToken(user._id, user.role),
             role: user.role, 

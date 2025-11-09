@@ -1,3 +1,5 @@
+// server/models/LeaveRequest.js
+
 const mongoose = require('mongoose');
 
 const LeaveRequestSchema = new mongoose.Schema({
@@ -23,7 +25,9 @@ const LeaveRequestSchema = new mongoose.Schema({
     },
     reason: {
         type: String,
-        default: ''
+        // FIX: The reason field must be explicitly optional (by removing 'required: true')
+        default: '' // This default is only applied if the field is omitted OR set to undefined
+        // You MUST remove 'required: true' here if you want it to be optional.
     },
     status: {
         type: String,

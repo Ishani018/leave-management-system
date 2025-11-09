@@ -6,15 +6,17 @@ const LeaveRequest = require('../models/LeaveRequest');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // --- CREATE LEAVE REQUEST ---
-// FIX 1: Change the path to '/' so the full route becomes /api/leave
+// Route: POST /api/leave
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { leaveType, startDate, endDate, reason } = req.body;
-    const employeeId = req.user && req.user.id; // Grabs ID from JWT payload
+    
+    const userId = req.user && req.user.id; 
 
-    if (!employeeId) {
+    if (!userId) {
       return res.status(401).json({ msg: 'Not authenticated.' });
     }
+    // Check required fields based on the fixed model schema
     if (!leaveType || !startDate || !endDate) {
       return res.status(400).json({ msg: 'Missing required fields.' });
     }
@@ -37,27 +39,29 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const newRequest = new LeaveRequest({
-      employee: employeeId, // Correctly uses the 'employee' field
+      // ✅ Using 'user' field to match the schema.
+      user: userId, 
       leaveType,
       startDate: start,
       endDate: end,
-      reason,
+      // Sending 'reason' from req.body, which is now optional in schema
+      reason: reason || '', 
       status: 'Pending',
     });
 
     await newRequest.save();
     return res.status(201).json(newRequest);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ msg: 'Server error.' });
+    console.error('Leave Submission Error:', err);
+    return res.status(500).json({ msg: 'Server error occurred during leave submission.' });
   }
 });
 
 // --- GET MY LEAVE REQUESTS ---
 router.get('/my-requests', authMiddleware, async (req, res) => {
     try {
-        // FIX 2: Change query field from 'user' to 'employee'
-        const requests = await LeaveRequest.find({ employee: req.user.id })
+        // ✅ Querying by 'user' field to match the schema
+        const requests = await LeaveRequest.find({ user: req.user.id })
                                            .sort({ createdAt: -1 }); 
         res.json(requests);
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import setAuthToken from '../utils/setAuthToken'; // <-- Import the new utility
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -22,22 +23,21 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // NOTE: Assuming your server is running on http://localhost:5000 (default)
             const res = await axios.post('/api/auth/login', { email, password });
             
-            // 🔑 FIX 1: Store BOTH the token AND the role in localStorage
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('role', res.data.role); 
+            const { token, role } = res.data;
+            
+            // 1. Store token and role
+            localStorage.setItem('token', token);
+            localStorage.setItem('role', role); 
 
-            // 🌟 NEW: Set the default header globally for Axios
-            axios.defaults.headers.common['x-auth-token'] = res.data.token;
+            // 2. Set the default header globally using the utility
+            setAuthToken(token); // ✅ FIX: Use the utility to set header
 
-            // FIX 2: Redirect to the dashboard which will then route based on role
             navigate('/dashboard'); 
         } catch (err) {
             console.error(err.response?.data);
             setError(err.response?.data?.msg || 'Login failed. Check your credentials.');
-            setLoading(false);
         } finally {
             setLoading(false);
         }

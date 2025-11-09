@@ -10,7 +10,7 @@ dotenv.config();
 const authRoutes = require('./routes/auth');
 const leaveRoutes = require('./routes/leave');
 // FIX: Load the Manager routes
-const managerRoutes = require('./routes/manager'); 
+const managerRoutes = require('./routes/manager'); //
 
 // Connect to Database (Assuming this function is correct)
 connectDB(); 
@@ -26,7 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/leave', leaveRoutes);
 
 // FIX: Register the Manager routes
-app.use('/api/manager', managerRoutes); 
+app.use('/api/manager', managerRoutes); //
 
 const PORT = process.env.PORT || 5000;
 

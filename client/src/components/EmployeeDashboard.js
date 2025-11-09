@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'; // <-- ADD useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const EmployeeDashboard = () => {
@@ -13,55 +13,40 @@ const EmployeeDashboard = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
 
-    // FIX: Wrapped in useCallback to create a stable function for dependency array
     const fetchRequests = useCallback(async () => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                // This redirect handles the "No token, authorization denied" UI issue
-                window.location.href = '/login'; 
-                return;
-            }
-            const config = {
-                headers: {
-                    'x-auth-token': token,
-                },
-            };
-            // Fetches ONLY the logged-in user's requests
-            const res = await axios.get('/api/leave/my-requests', config);
+            // ✅ FIX: No local 'config' object needed. Rely on global Axios header.
+            const res = await axios.get('/api/leave/my-requests'); 
             setRequests(res.data);
             setError(null);
         } catch (err) {
             console.error(err.response?.data);
             setError(err.response?.data?.msg || 'Failed to fetch requests.');
             if (err.response?.status === 401) {
+                // If the global token setting failed, this is the fallback:
                 localStorage.removeItem('token');
                 localStorage.removeItem('role'); 
                 window.location.href = '/login';
             }
         }
-    }, [setError, setRequests]); // Depend only on setters
+    }, [setError, setRequests]);
 
-    // Dependency array now includes fetchRequests, but since it uses useCallback, it's safe.
     useEffect(() => {
         fetchRequests();
     }, [fetchRequests]); 
 
-    // FIX: 'onChange' is now correctly used in the JSX inputs below.
     const onChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // FIX: 'onSubmit' is now correctly used in the JSX form below.
     const onSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
         setLoading(true);
         try {
-            // FIX: Renamed inner formData to requestData to resolve 'no-use-before-define'
             const requestData = { leaveType, ...formData }; 
             
-            // FIX: Removed 'const res =' assignment to resolve 'no-unused-vars' warning.
+            // ✅ FIX: No local 'config' object needed. Rely on global Axios header.
             await axios.post('/api/leave', requestData); 
             
             setSuccess('Leave request submitted successfully.');
@@ -75,7 +60,6 @@ const EmployeeDashboard = () => {
         }
     };
 
-    // The state variables (requests, loading, error, success) are now USED in this JSX:
     return (
         <div className="p-6">
             <h2 className="text-3xl font-bold mb-6">Employee Dashboard</h2>
@@ -85,10 +69,6 @@ const EmployeeDashboard = () => {
                 {loading && <div className="mb-3 text-center font-medium">Loading...</div>}
                 {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
                 {success && <div className="mb-3 text-sm text-green-600">{success}</div>}
-
-                {/* --- Form Inputs using onChange and onSubmit --- */}
-                {/* ... (rest of the form fields using onChange) */}
-                {/* Ensure input names match state keys: startDate, endDate, reason */}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -128,7 +108,6 @@ const EmployeeDashboard = () => {
 
             <hr className="my-8" />
             
-            {/* --- My Leave Requests list uses the 'requests' state --- */}
             <h3 className="text-xl font-semibold mb-4">My Leave Requests</h3>
             {requests.length === 0 ? (
                 <p>You have no leave requests.</p>
