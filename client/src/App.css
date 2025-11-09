@@ -1,0 +1,164 @@
+/* client/src/App.css */
+
+/* Main App Container */
+.App {
+  max-width: 900px;
+  margin: 40px auto; /* Center the app */
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Navigation */
+nav {
+  display: flex; /* Use flexbox */
+  justify-content: space-between; /* Space items out */
+  align-items: center; /* Center them vertically */
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+}
+
+nav .logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+nav ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0; /* Remove default margin */
+}
+
+nav li {
+  display: inline;
+  margin-left: 20px;
+}
+
+nav a, .logout-button {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 16px;
+  transition: color 0.2s ease-in-out;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+nav a:hover, .logout-button:hover {
+  color: #0056b3;
+}
+
+/* Headings */
+h2, h3 {
+  color: #333;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* Form Styling */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds space between form elements */
+}
+
+form div {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+textarea {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  font-family: inherit; /* Use the body's font */
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Button Styling */
+input[type="submit"],
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+input[type="submit"]:hover,
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Specific Button Colors */
+.btn-approve {
+  background-color: #28a745; /* Green */
+  margin-right: 10px;
+}
+.btn-approve:hover {
+  background-color: #218838;
+}
+
+.btn-reject {
+  background-color: #dc3545; /* Red */
+}
+.btn-reject:hover {
+  background-color: #c82333;
+}
+
+
+/* Leave Request List Item */
+.request-item {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  background: #fdfdfd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  line-height: 1.6;
+}
+
+.request-item strong {
+  color: #444;
+  margin-right: 8px;
+}
+
+/* Status-specific colors */
+.status-pending {
+  color: #ffc107; /* Yellow */
+  font-weight: bold;
+}
+.status-approved {
+  color: #28a745; /* Green */
+  font-weight: bold;
+}
+.status-rejected {
+  color: #dc3545; /* Red */
+  font-weight: bold;
+}
