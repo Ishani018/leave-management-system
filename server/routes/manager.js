@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const LeaveRequest = require('../models/LeaveRequest');
 const { protect } = require('../middleware/authMiddleware'); 
-const { isManager } = require('../middleware/managerMiddleware'); // Ensure this file exists
+const { isManager } = require('../middleware/managerMiddleware'); 
 
 // @route   GET /api/manager/requests
 // @desc    Get all PENDING leave requests for review
@@ -10,7 +10,8 @@ const { isManager } = require('../middleware/managerMiddleware'); // Ensure this
 router.get('/requests', protect, isManager, async (req, res) => {
     try {
         const requests = await LeaveRequest.find({ status: 'Pending' })
-            .populate('user', 'name email') // Gets employee info
+            // FIX 3: Change 'user' to 'employee' to correctly populate the user's name/email
+            .populate('employee', 'name email') 
             .sort({ createdAt: -1 });
 
         res.json(requests);

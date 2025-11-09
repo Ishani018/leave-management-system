@@ -29,6 +29,9 @@ const Login = () => {
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('role', res.data.role); 
 
+            // 🌟 NEW: Set the default header globally for Axios
+            axios.defaults.headers.common['x-auth-token'] = res.data.token;
+
             // FIX 2: Redirect to the dashboard which will then route based on role
             navigate('/dashboard'); 
         } catch (err) {

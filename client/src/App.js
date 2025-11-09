@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// The import for App.css has been added here to apply global styles
+import './App.css'; 
 // Components (ensure these files exist in src/components/)
 import Navbar from './components/Navbar';
 import Login from './components/Login';
@@ -30,7 +32,8 @@ function App() {
     return (
         <Router>
             <Navbar />
-            <div className="container mx-auto p-4">
+            {/* The 'App' class from App.css is added here to style the main container */}
+            <div className="container App mx-auto p-4">
                 <Routes>
                     <Route path="/register" element={<Register />} />
                     <Route path="/login" element={<Login />} />

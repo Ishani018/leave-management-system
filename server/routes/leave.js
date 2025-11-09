@@ -6,13 +6,11 @@ const LeaveRequest = require('../models/LeaveRequest');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // --- CREATE LEAVE REQUEST ---
-// Endpoint: POST /api/leave
-// @desc    Apply for leave
-// @access  Private (requires token)
-router.post('/api/leave-request', authMiddleware, async (req, res) => {
+// FIX 1: Change the path to '/' so the full route becomes /api/leave
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { leaveType, startDate, endDate, reason } = req.body;
-    const employeeId = req.user && req.user.id;
+    const employeeId = req.user && req.user.id; // Grabs ID from JWT payload
 
     if (!employeeId) {
       return res.status(401).json({ msg: 'Not authenticated.' });
@@ -39,7 +37,7 @@ router.post('/api/leave-request', authMiddleware, async (req, res) => {
     }
 
     const newRequest = new LeaveRequest({
-      employee: employeeId,
+      employee: employeeId, // Correctly uses the 'employee' field
       leaveType,
       startDate: start,
       endDate: end,
@@ -56,14 +54,11 @@ router.post('/api/leave-request', authMiddleware, async (req, res) => {
 });
 
 // --- GET MY LEAVE REQUESTS ---
-// Endpoint: GET /api/leave/my-requests
-// @desc    Get all leave requests for the logged-in user
-// @access  Private (requires token)
 router.get('/my-requests', authMiddleware, async (req, res) => {
     try {
-        // Find all requests where the 'user' field matches our token's user ID
-        const requests = await LeaveRequest.find({ user: req.user.id })
-                                           .sort({ createdAt: -1 }); // Show newest first
+        // FIX 2: Change query field from 'user' to 'employee'
+        const requests = await LeaveRequest.find({ employee: req.user.id })
+                                           .sort({ createdAt: -1 }); 
         res.json(requests);
 
     } catch (err) {
